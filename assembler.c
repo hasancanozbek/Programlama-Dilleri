@@ -1,10 +1,15 @@
+/*
+ * HASAN CAN ÖZBEK
+ * 02200201007
+ */
+
 #include <stdio.h>
 #include <string.h>
 #include <stdbool.h>
 
-char readFile[1024];
-int currentIndex;
-unsigned short AX = 0, BX = 0, CX = 0, DX = 0;
+char readFile[1024]; //Dosyadan okunan kaynak kodun tutuldugu array
+int currentIndex; //Kaynak kod uzerinde gezinmeyi saglayan index sayaci
+unsigned short AX = 0, BX = 0, CX = 0, DX = 0; //Assembler dilinin sanal 4 adet registeri
 
 int isRegister() { //Register turunu tespit eden fonksiyon
     if (readFile[currentIndex] == 'A') {
