@@ -6,7 +6,7 @@ char readFile[1024];
 int currentIndex;
 unsigned short AX = 0, BX = 0, CX = 0, DX = 0;
 
-int isRegister() {
+int isRegister() { //Register turunu tespit eden fonksiyon
     if (readFile[currentIndex] == 'A') {
         return 1;
     } else if (readFile[currentIndex] == 'B') {
@@ -19,7 +19,7 @@ int isRegister() {
     return 0;
 }
 
-bool isNumber() {
+bool isNumber() { //Dosyadaki karakter kumesinin sayi olup olmadigini kontrol eden fonksiyon
     if (readFile[currentIndex] == '0' || readFile[currentIndex] == '1' ||
         readFile[currentIndex] == '2' ||
         readFile[currentIndex] == '3' || readFile[currentIndex] == '4' ||
@@ -32,7 +32,7 @@ bool isNumber() {
     return false;
 }
 
-unsigned short covertNumber() {
+unsigned short covertNumber() { //Dosyadaki karakter kumesi seklinde duran sayilari short tipine ceviren fonksiyon
     unsigned short sum = 0;
     int counter = 0;
     unsigned short arr[8];
@@ -60,14 +60,14 @@ unsigned short covertNumber() {
 
 int main() {
 
-    unsigned short memory[2048];
+    unsigned short memory[2048]; //Makinemizin sanal bellek birimi 2048kb olarak alinmistir.
 
     char character;
     char file_path[256];
     FILE *file;
     printf("Dosya yolunu giriniz (\" kullanmadan): ");
     scanf("%s", &file_path);
-
+    //Dosyadan verileri cekme islemi
     if ((file = fopen(file_path, "r")) != NULL) {
         int k;
         k = 0;
@@ -82,16 +82,15 @@ int main() {
         readFile[k] = '\0';
 
         //Assembler Algoritması
-
-        currentIndex = 0;
-        while (currentIndex < strlen(readFile)) {
+        currentIndex = 0; //isleme dosyanin 0. indexinden baslar
+        while (currentIndex < strlen(readFile)) { //index dosyadaki karakter sayisina esit olanan kadar devam eder
             if (readFile[currentIndex] == 'H' && readFile[currentIndex + 1] == 'R' &&
                 readFile[currentIndex + 2] == 'K') {
-                currentIndex += 4;
-                if (isRegister() != 0) {
-                    int register1 = isRegister();
+                currentIndex += 4; //Kontrol islemi 3 karakter saydi, bosluk da bir karakter olarak alindi ve 4 index atlandi
+                if (isRegister() != 0) { //Gelen kelime bir register mi?
+                    int register1 = isRegister(); //Register turunu belirle
                     currentIndex += 3;
-                    if (isNumber()) {
+                    if (isNumber()) { //Gelen kelime bir sayi mi?
                         if (register1 == 1) {
                             AX = covertNumber();
                             printf("\nAX <-- %hu", AX);
@@ -108,7 +107,7 @@ int main() {
                             DX = covertNumber();
                             printf("\nDX <-- %hu", DX);
                         }
-                    } else if (readFile[currentIndex] == '[') {
+                    } else if (readFile[currentIndex] == '[') {// [ parantezi gelirse bellekten okuma yap
                         currentIndex++;
                         if (register1 == 1) {
                             AX = memory[covertNumber()];
@@ -126,9 +125,9 @@ int main() {
                             DX = memory[covertNumber()];
                             printf("\nDX <-- %hu", DX);
                         }
-                        currentIndex++;
-                    } else if (isRegister() != 0) {
-                        int register2 = isRegister();
+                        currentIndex++; //En sondaki kapatma parantezini atlamak icin indexi arttir
+                    } else if (isRegister() != 0) { //Sonraki kelime bir register mi?
+                        int register2 = isRegister();//Registerin turunu bul
                         currentIndex += 2;
                         if (register1 == 1) {
                             if (register2 == 1) {
@@ -194,10 +193,10 @@ int main() {
                 }
                 if (readFile[currentIndex] == '[') {
                     currentIndex++;
-                    unsigned short address = covertNumber();
+                    unsigned short address = covertNumber(); //Parantez icindeki adresi degiskene ata
                     currentIndex += 2;
-                    if (isRegister() != 0) {
-                        int registerId = isRegister();
+                    if (isRegister() != 0) { //Sonraki kelime bir register mi?
+                        int registerId = isRegister(); //Registerin turunu belirle
                         currentIndex += 2;
                         if (registerId == 1) {
                             memory[address] = AX;
@@ -216,17 +215,17 @@ int main() {
                             printf("\nMemory[%hu] <-- %hu", address, DX);
                         }
                     }
-                    if (isNumber()) {
-                        unsigned short data = covertNumber();
+                    if (isNumber()) {//Sonraki kelime bir sayi mi iceriyor?
+                        unsigned short data = covertNumber();//Sayiyi bir degiskende sakla
                         memory[address] = data;
                         printf("\nMemory[%hu] <-- %hu", address, data);
                     }
                     if (readFile[currentIndex] == '[') {
                         currentIndex++;
                         unsigned short address2 = covertNumber();
-                        memory[address] = memory[address2];
+                        memory[address] = memory[address2]; //1. parametredeki bellek hucresine 2. parametreki bellek hucresini yapistir
                         printf("\nMemory[%hu] <-- %hu", address, memory[address2]);
-                        currentIndex++;
+                        currentIndex++; //Sondaki ] parantezini atla
                     }
                 }
             } else if (readFile[currentIndex] == 'D' && readFile[currentIndex + 1] == 'E' &&
@@ -236,8 +235,9 @@ int main() {
                     int registerId = isRegister();
                     currentIndex += 2;
                     if (registerId == 1) {
-                        unsigned short complement = ~AX;
-                        unsigned short result = 15 & complement;
+                        unsigned short complement = ~AX;//1. tumleyen al
+                        unsigned short result = 15 & complement;//Short 16 bit oldugu icin 1. tumleyeni hatali sonuc verecektir.
+                        //Bu yuzden en onemli 8 bitini 0 ile maskeliyorum. h'15' = 00001111
                         printf("\n%hu' -->  %hu", AX, result);
                     }
                     if (registerId == 2) {
@@ -265,7 +265,7 @@ int main() {
                     currentIndex++;
                 }
             } else if (readFile[currentIndex] == 'V' && readFile[currentIndex + 1] == 'E' &&
-                       readFile[currentIndex + 2] != 'Y') {
+                       readFile[currentIndex + 2] != 'Y') { //VEYA komutundaki 'VE' harflerinden dolayi karismamasi icin sonraki harfi de kontrol et.
                 currentIndex += 3;
                 if(isRegister() != 0){
                     int register1 = isRegister();
@@ -1069,7 +1069,7 @@ int main() {
                         currentIndex += 2;
                         if (register1 == 1) {
                             if (register2 == 1) {
-                                DX = 0;
+                                DX = 0; //Kalan sayiyi tutan register
                                 AX = AX / AX;
                                 printf("\nAX <-- %hu   (DX : %hu)", AX, DX);
                             }
@@ -1083,8 +1083,7 @@ int main() {
                                 AX = AX / CX;
                                 printf("\nAX <-- %hu   (DX : %hu)", AX, DX);
                             }
-                            if (register2 == 4) { //TODO
-                                DX = AX % DX;
+                            if (register2 == 4) { //Eger DX registeri direkt olarak kullanilirsa kalani tutma ozelligini iptal et.
                                 AX = AX / DX;
                                 printf("\nAX <-- %hu   (DX : %hu)", AX, DX);
                             }
@@ -1105,8 +1104,7 @@ int main() {
                                 BX = BX / CX;
                                 printf("\nBX <-- %hu   (DX : %hu)", BX, DX);
                             }
-                            if (register2 == 4) { //TODO
-                                DX = BX % DX;
+                            if (register2 == 4) { //Eger DX registeri direkt olarak kullanilirsa kalani tutma ozelligini iptal et.
                                 BX = BX / DX;
                                 printf("\nBX <-- %hu   (DX : %hu)", BX, DX);
                             }
@@ -1128,13 +1126,12 @@ int main() {
                                 CX = CX / CX;
                                 printf("\nCX <-- %hu   (DX : %hu)", CX, DX);
                             }
-                            if (register2 == 4) { //TODO
-                                DX = CX % DX;
+                            if (register2 == 4) { //Eger DX registeri direkt olarak kullanilirsa kalani tutma ozelligini iptal et.
                                 CX = CX / DX;
                                 printf("\nCX <-- %hu   (DX : %hu)", CX, DX);
                             }
                         }
-                        if (register1 == 4) { //TODO
+                        if (register1 == 4) { //Eger DX registeri direkt olarak kullanilirsa kalani tutma ozelligini iptal et.
                             if (register2 == 1) {
                                 DX = DX / AX;
                                 printf("\nDX <-- %hu", DX);
@@ -1171,7 +1168,7 @@ int main() {
                             CX = CX / memory[covertNumber()];
                             printf("\nCX <-- %hu   (DX : %hu)", CX, DX);
                         }
-                        if (register1 == 4) { //TODO
+                        if (register1 == 4) { //Eger DX registeri direkt olarak kullanilirsa kalani tutma ozelligini iptal et.
                             DX = DX / memory[covertNumber()];
                             printf("\nDX <-- %hu", DX);
                         }
@@ -1194,7 +1191,7 @@ int main() {
                             CX = CX / data;
                             printf("\nCX <-- %hu   (DX : %hu)", CX, DX);
                         }
-                        if (register1 == 4) {
+                        if (register1 == 4) {//Eger DX registeri direkt olarak kullanilirsa kalani tutma ozelligini iptal et.
                             DX = DX / data;
                             printf("\nDX <-- %hu", DX);
                         }
@@ -1222,7 +1219,7 @@ int main() {
                             memory[address] = memory[address] / CX;
                             printf("\nMemory[%hu] <-- %hu   (DX : %hu)", address, memory[address], DX);
                         }
-                        if (register1 == 4) { //TODO
+                        if (register1 == 4) { //Eger DX registeri direkt olarak kullanilirsa kalani tutma ozelligini iptal et.
                             memory[address] = memory[address] / DX;
                             printf("\nMemory[%hu] <-- %hu   (DX : %hu)", address, memory[address], DX);
                         }
